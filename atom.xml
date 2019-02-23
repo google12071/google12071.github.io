@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>简恒の博客</title>
+  
+  <subtitle>求于至简，归于永恒</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="https://google12071.github.io/"/>
+  <updated>2019-02-23T14:50:47.643Z</updated>
+  <id>https://google12071.github.io/</id>
+  
+  <author>
+    <name>google12071</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>设计模式之模版方法模式</title>
+    <link href="https://google12071.github.io/2019/02/23/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E6%A8%A1%E7%89%88%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F/"/>
+    <id>https://google12071.github.io/2019/02/23/设计模式之模版方法模式/</id>
+    <published>2019-02-23T14:42:27.000Z</published>
+    <updated>2019-02-23T14:50:47.643Z</updated>
+    
+    <summary type="html">
+    
+      模版方法模式思想与实践
+    
+    </summary>
+    
+      <category term="设计模式" scheme="https://google12071.github.io/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+    
+      <category term="设计模式" scheme="https://google12071.github.io/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+  </entry>
+  
+</feed>
