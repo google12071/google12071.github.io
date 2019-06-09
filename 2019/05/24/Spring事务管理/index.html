@@ -96,17 +96,28 @@
 
 
 
-  <meta name="description" content="技术、人文、生活">
+  <meta name="description" content="Spring事务管理一、数据库事务 Spring事务依赖于数据库底层的事务处理机制，通过redolog（重执行日志）来保证原子性、一致性和持久性，重做日志记录了数据库变化的每一个动作，事务执行过程中发生异常时，可根据重做日志撤销已执行操作。”一荣俱荣，一损俱损”很好的体现了事务的核心思想,反应到数据库上，执行多条SQL语句时，要么所有执行成功，要么所有执行失败回滚操作。   ACID事务特性  A">
 <meta name="keywords" content="互联网后端、Java核心、大数据、精致生活">
-<meta property="og:type" content="website">
+<meta property="og:type" content="article">
 <meta property="og:title" content="简恒の博客">
-<meta property="og:url" content="https://google12071.github.io/index.html">
+<meta property="og:url" content="https://google12071.github.io/2019/05/24/Spring事务管理/index.html">
 <meta property="og:site_name" content="简恒の博客">
-<meta property="og:description" content="技术、人文、生活">
+<meta property="og:description" content="Spring事务管理一、数据库事务 Spring事务依赖于数据库底层的事务处理机制，通过redolog（重执行日志）来保证原子性、一致性和持久性，重做日志记录了数据库变化的每一个动作，事务执行过程中发生异常时，可根据重做日志撤销已执行操作。”一荣俱荣，一损俱损”很好的体现了事务的核心思想,反应到数据库上，执行多条SQL语句时，要么所有执行成功，要么所有执行失败回滚操作。   ACID事务特性  A">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609090049049.png">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609090422934.png">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609090506035.png">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609090726567.png">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609091048306.png">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609091109844.png">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609091208056.png">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190524195428629.png">
+<meta property="og:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609112821668.png">
+<meta property="og:updated_time" content="2019-06-09T03:40:45.447Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="简恒の博客">
-<meta name="twitter:description" content="技术、人文、生活">
+<meta name="twitter:description" content="Spring事务管理一、数据库事务 Spring事务依赖于数据库底层的事务处理机制，通过redolog（重执行日志）来保证原子性、一致性和持久性，重做日志记录了数据库变化的每一个动作，事务执行过程中发生异常时，可根据重做日志撤销已执行操作。”一荣俱荣，一损俱损”很好的体现了事务的核心思想,反应到数据库上，执行多条SQL语句时，要么所有执行成功，要么所有执行失败回滚操作。   ACID事务特性  A">
+<meta name="twitter:image" content="https://google12071.github.io/Users/one/Library/Application%20Support/typora-user-images/image-20190609090049049.png">
 
 
 
@@ -115,7 +126,7 @@
 
 
 
-  <link rel="canonical" href="https://google12071.github.io/">
+  <link rel="canonical" href="https://google12071.github.io/2019/05/24/Spring事务管理/">
 
 
 
@@ -125,7 +136,7 @@
   };
 </script>
 
-  <title>简恒の博客</title>
+  <title> | 简恒の博客</title>
   
 
 
@@ -173,8 +184,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -216,7 +226,7 @@
         
         
           
-          <li class="menu-item menu-item-home menu-item-active">
+          <li class="menu-item menu-item-home">
 
     
     
@@ -312,9 +322,9 @@
           
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -347,9 +357,7 @@
         
         
           <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/05/24/Spring事务管理/" class="post-title-link" itemprop="url">未命名</a>
+
               
             
           </h1>
@@ -425,9 +433,7 @@
       
 
       
-        
-          
-            <h1 id="Spring事务管理"><a href="#Spring事务管理" class="headerlink" title="Spring事务管理"></a>Spring事务管理</h1><h3 id="一、数据库事务"><a href="#一、数据库事务" class="headerlink" title="一、数据库事务"></a>一、数据库事务</h3><blockquote>
+        <h1 id="Spring事务管理"><a href="#Spring事务管理" class="headerlink" title="Spring事务管理"></a>Spring事务管理</h1><h3 id="一、数据库事务"><a href="#一、数据库事务" class="headerlink" title="一、数据库事务"></a>一、数据库事务</h3><blockquote>
 <p>Spring事务依赖于数据库底层的事务处理机制，通过redolog（重执行日志）来保证原子性、一致性和持久性，重做日志记录了数据库变化的每一个动作，事务执行过程中发生异常时，可根据重做日志撤销已执行操作。”一荣俱荣，一损俱损”很好的体现了事务的核心思想,反应到数据库上，执行多条SQL语句时，要么所有执行成功，要么所有执行失败回滚操作。</p>
 </blockquote>
 <ul>
@@ -546,8 +552,6 @@
 </li>
 </ul>
 
-          
-        
       
     </div>
 
@@ -557,6 +561,12 @@
     
     
     <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
       
     </div>
     
@@ -572,362 +582,28 @@
       
 
       
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://google12071.github.io/2019/02/27/常用安全算法/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="google12071">
-      <meta itemprop="description" content="技术、人文、生活">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="简恒の博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/02/27/常用安全算法/" class="post-title-link" itemprop="url">常用安全算法</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-02-27 23:52:55" itemprop="dateCreated datePublished" datetime="2019-02-27T23:52:55+08:00">2019-02-27</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-03-02 11:16:34" itemprop="dateModified" datetime="2019-03-02T11:16:34+08:00">2019-03-02</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Java核心/" itemprop="url" rel="index"><span itemprop="name">Java核心</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
       
       
 
       
-        
-          常用加密解密算法总结
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/02/27/常用安全算法/">
-                阅读全文 &raquo;
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/27/常用安全算法/" rel="next" title="常用安全算法">
+                <i class="fa fa-chevron-left"></i> 常用安全算法
               </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-    <div>
-      
-    </div>
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://google12071.github.io/2019/02/23/设计模式之模版方法模式/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="google12071">
-      <meta itemprop="description" content="技术、人文、生活">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="简恒の博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/02/23/设计模式之模版方法模式/" class="post-title-link" itemprop="url">设计模式之模版方法模式</a>
-              
             
-          </h1>
-        
+          </div>
 
-        <div class="post-meta">
-          <span class="post-time">
+          <span class="post-nav-divider"></span>
 
+          <div class="post-nav-prev post-nav-item">
             
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-02-23 22:42:27 / 修改时间：22:50:47" itemprop="dateCreated datePublished" datetime="2019-02-23T22:42:27+08:00">2019-02-23</time>
-            
-
-            
-              
-
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/设计模式/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          模版方法模式思想与实践
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/02/23/设计模式之模版方法模式/">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-    <div>
-      
-    </div>
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -937,14 +613,15 @@
   </article>
 
 
-    
-  </section>
-
-  
+  </div>
 
 
           </div>
           
+
+  
+
+
 
         </div>
         
@@ -964,8 +641,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <div class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -1046,6 +732,23 @@
         </div>
       </div>
 
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring事务管理"><span class="nav-number">1.</span> <span class="nav-text">Spring事务管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、数据库事务"><span class="nav-number">1.0.1.</span> <span class="nav-text">一、数据库事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、ThreadLocal"><span class="nav-number">1.0.2.</span> <span class="nav-text">二、ThreadLocal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、Spring声明式事务"><span class="nav-number">1.0.3.</span> <span class="nav-text">三、Spring声明式事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.0.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
       
 
       
@@ -1182,6 +885,10 @@
 
 
   
+  <script src="/js/src/scrollspy.js?v=7.0.0"></script>
+<script src="/js/src/post-details.js?v=7.0.0"></script>
+
+
 
   
 
@@ -1193,6 +900,8 @@
   
 
 
+  
+
 
   
 
@@ -1207,14 +916,6 @@
   
 
   
-  
-    
-      
-    
-      
-    
-      
-    
   
 
   
