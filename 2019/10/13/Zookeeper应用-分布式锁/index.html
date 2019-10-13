@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.0" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.0.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false,"dimmer":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="基于zookeeper分布式锁分析及实践">
+<meta name="keywords" content="分布式核心">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zookeeper应用-分布式锁">
+<meta property="og:url" content="https://google12071.github.io/2019/10/13/Zookeeper应用-分布式锁/index.html">
+<meta property="og:site_name" content="简恒の博客">
+<meta property="og:description" content="基于zookeeper分布式锁分析及实践">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://s2.ax1x.com/2019/10/13/uvbamd.png">
+<meta property="og:image" content="https://s2.ax1x.com/2019/10/13/uv7DHI.png">
+<meta property="og:updated_time" content="2019-10-13T10:24:54.461Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zookeeper应用-分布式锁">
+<meta name="twitter:description" content="基于zookeeper分布式锁分析及实践">
+<meta name="twitter:image" content="https://s2.ax1x.com/2019/10/13/uvbamd.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="简恒の博客" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="https://google12071.github.io/2019/10/13/Zookeeper应用-分布式锁/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Zookeeper应用-分布式锁 | 简恒の博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">简恒の博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">求于至简，归于永恒</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://google12071.github.io/2019/10/13/Zookeeper应用-分布式锁/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="google12071">
+      <meta itemprop="description" content="技术、人文、生活">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="简恒の博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Zookeeper应用-分布式锁
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-13 18:22:55 / 修改时间：18:24:54" itemprop="dateCreated datePublished" datetime="2019-10-13T18:22:55+08:00">2019-10-13</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/分布式/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            <div class="post-description">基于zookeeper分布式锁分析及实践</div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Zookeeper应用-分布式锁"><a href="#Zookeeper应用-分布式锁" class="headerlink" title="Zookeeper应用-分布式锁"></a>Zookeeper应用-分布式锁</h2><h3 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h3><ul>
+<li><p>为什么需要分布式锁?</p>
+<p>单机环境，应用程序都部署在同一台服务器上，并发环境下为了控制多线程对临界资源的安全访问，我们通常可以加锁实现，单机环境下的多线程同属于同一个JVM中的同一个进程之内，可通过Java锁机制确保线程安全，但分布式环境下应用程序部署于多台机器，当多台机器并发执行相同的应用程序时，就有可能出现问题，比如消息推送服务部署于A，B两台机器，当同时触发发送系统消息时，若不加控制，用户就可能收到2条重复的消息，基于此类场景，需要分布式的锁来协调分布式服务的并发调用。例如存在以下场景：</p>
+<ul>
+<li>变量A存在于JVM1、JVM2、JVM3三个内存中</li>
+<li>请求1、2、3到达时对变量进行操作，因为变量A存储于3个不同的JVM内存区域，显然变量操作不具备可见性</li>
+<li>并发下需要维护变量数据A的一致性，确保各个节点数据同步</li>
+</ul>
+<p>这种应用场景下分布式锁被引入用于协调和控制分布式服务调用，确保数据一致性。</p>
+<p><img src="https://s2.ax1x.com/2019/10/13/uvbamd.png" alt="分布式服务访问"></p>
+</li>
+<li><p>分布式锁基本条件</p>
+<ul>
+<li>分布式环境下，同一时间一个方法仅能被一台机器的一个线程执行</li>
+<li>获取与释放锁高可用</li>
+<li>获取于释放锁高性能</li>
+<li>锁可重入</li>
+<li>锁具备失效机制，防止持有锁的线程崩溃造成死锁</li>
+<li>非阻塞，没有争抢到锁的线程直接返回或获取锁失败</li>
+</ul>
+</li>
+<li><p>常见分布式锁解决方案<br>业界有很多分布式锁的实现方案，比较常见的有基于Redis缓存、基于数据库等，本文主要针对zookeeper分布式锁分析实现，基于Redis和数据库仅作原理性介绍，本文不深入探讨。</p>
+<ul>
+<li><p>基于Redis</p>
+<p>Redis天然具备高性能、单线程的特性，可以利用其特性实现分布式锁，主要使用setnx加锁，并对锁设置超时时间，超时时自动释放锁，改方案要注意加锁及解锁姿势；基于数据库的核心思想主要是利用数据库唯一约束确保多线程互斥执行，此方案依赖数据库服务的可用性，会增加数据库压力，现实中很少用。</p>
+<p>zookeeper是一个分布式服务协调框架，内部结构类似于unix文件系统，是一种树型结构，但与文件系统不同的时，其路径节点上可以存储数据znode。zookeeper具有持久节点和临时节点2种并且可维护有序性，当客户端与服务器断开连接时，临时节点自动删除，基于临时节点+有序性+watch机制就可以非常简单方便的实现zookeeper分布式锁。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="二、基于Zookeeper分布式锁原理"><a href="#二、基于Zookeeper分布式锁原理" class="headerlink" title="二、基于Zookeeper分布式锁原理"></a>二、基于Zookeeper分布式锁原理</h3><ul>
+<li><p>zookeeper获取分布式锁原理图</p>
+<p>关于zookeeper znode、临时节点、有序性、watch机制等概念，不做过多介绍，网络上相关资料已经非常多，可自行查阅，zookeeper分布式锁的整体流程如下图：</p>
+</li>
+</ul>
+<p><img src="https://s2.ax1x.com/2019/10/13/uv7DHI.png" alt="zookeeper分布式锁原理"></p>
+<h3 id="三、Zookeeper分布式锁实践"><a href="#三、Zookeeper分布式锁实践" class="headerlink" title="三、Zookeeper分布式锁实践"></a>三、Zookeeper分布式锁实践</h3><ul>
+<li>临时节点+有序性+watch机制</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 基于zookeeper的分布式锁:</span></span><br><span class="line"><span class="comment"> *   利用临时顺序节点来实现分布式锁</span></span><br><span class="line"><span class="comment"> *   获取锁：取顺序号（类似银行排队拿号），判断自己的序号是否最小，若是则获得锁，否则注册前一个兄弟节点watcher，则阻塞等待</span></span><br><span class="line"><span class="comment"> *   释放锁：删除自己创建的临时顺序节点</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZkDistributeAdvanceLock</span> <span class="keyword">implements</span> <span class="title">Lock</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(ZkDistributeAdvanceLock.class);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//协调线程的等待和唤醒</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CountDownLatch downLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//锁节点目录</span></span><br><span class="line">    <span class="keyword">private</span> String path;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//zookeeper连接客户端</span></span><br><span class="line">    <span class="keyword">private</span> ZkClient zkClient;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 当前路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> ThreadLocal&lt;String&gt; currentPath = <span class="keyword">new</span> ThreadLocal&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 前一个兄弟节点路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> ThreadLocal&lt;String&gt; beforePath = <span class="keyword">new</span> ThreadLocal&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//可重入计数</span></span><br><span class="line">    <span class="keyword">private</span> ThreadLocal&lt;Integer&gt; reenterCount = ThreadLocal.withInitial(() -&gt; <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ZkDistributeAdvanceLock</span><span class="params">(String path)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (path == <span class="keyword">null</span> || path.trim().equals(<span class="string">""</span>)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"路径为空!"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">this</span>.path = path;</span><br><span class="line"></span><br><span class="line">        zkClient = <span class="keyword">new</span> ZkClient(<span class="string">"localhost:2181"</span>);</span><br><span class="line"></span><br><span class="line">        zkClient.setZkSerializer(<span class="keyword">new</span> CustomSerializer());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (!zkClient.exists(path)) &#123;</span><br><span class="line">                zkClient.createPersistent(path, <span class="keyword">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ZkNodeExistsException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">//尝试获取分布式锁，若获取不到则等待，监听到上一个兄弟节点删除后，再次尝试获取锁</span></span><br><span class="line">        <span class="keyword">if</span> (!tryLock()) &#123;</span><br><span class="line">            <span class="comment">//阻塞等待</span></span><br><span class="line">            waitForLock();</span><br><span class="line">            <span class="comment">//再次竞争分布式锁</span></span><br><span class="line">            lock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lockInterruptibly</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        logger.info(Thread.currentThread().getName() + <span class="string">"尝试获取分布式锁..."</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//先创建临时顺序节点</span></span><br><span class="line">        <span class="keyword">if</span> (currentPath.get() == <span class="keyword">null</span> || !zkClient.exists(currentPath.get())) &#123;</span><br><span class="line">            String node = zkClient.createEphemeralSequential(path + <span class="string">"/"</span>, <span class="string">"locked"</span>);</span><br><span class="line">            currentPath.set(node);</span><br><span class="line">            reenterCount.set(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//获取所有节点</span></span><br><span class="line">        List&lt;String&gt; childList = zkClient.getChildren(path);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//所有子节点排序</span></span><br><span class="line">        Collections.sort(childList);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//若是最小节点，可获得锁</span></span><br><span class="line">        <span class="keyword">if</span> (currentPath.get().equals(path + <span class="string">"/"</span> + childList.get(<span class="number">0</span>))) &#123;</span><br><span class="line">            <span class="comment">//重入计数+1</span></span><br><span class="line">            reenterCount.set(reenterCount.get() + <span class="number">1</span>);</span><br><span class="line">            logger.info(Thread.currentThread().getName() + <span class="string">"获得分布式锁..."</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//获取上一个兄弟节点</span></span><br><span class="line">            <span class="keyword">int</span> currentIndex = childList.indexOf(currentPath.get().substring(path.length() + <span class="number">1</span>));</span><br><span class="line">            String node = path + <span class="string">"/"</span> + childList.get(currentIndex - <span class="number">1</span>);</span><br><span class="line">            beforePath.set(node);</span><br><span class="line">            logger.info(Thread.currentThread().getName() + <span class="string">"获取分布式锁失败..."</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">(<span class="keyword">long</span> time, TimeUnit unit)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unlock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        logger.info(Thread.currentThread() + <span class="string">"释放当前分布式锁"</span>);</span><br><span class="line">        <span class="keyword">if</span> (reenterCount.get() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="comment">//重入次数-1，释放锁</span></span><br><span class="line">            reenterCount.set(reenterCount.get() - <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//删除节点</span></span><br><span class="line">        <span class="keyword">if</span> (currentPath.get() != <span class="keyword">null</span>) &#123;</span><br><span class="line">            zkClient.delete(currentPath.get());</span><br><span class="line">            currentPath.set(<span class="keyword">null</span>);</span><br><span class="line">            reenterCount.set(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Condition <span class="title">newCondition</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">waitForLock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">//监听上一个兄弟节点数据变更</span></span><br><span class="line">        IZkDataListener dataListener = <span class="keyword">new</span> IZkDataListener() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleDataChange</span><span class="params">(String s, Object o)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                logger.info(Thread.currentThread().getName() + <span class="string">"监听到节点删除"</span>);</span><br><span class="line">                downLatch.countDown();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleDataDeleted</span><span class="params">(String s)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                logger.info(Thread.currentThread().getName() + <span class="string">"监听到节点变更"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        zkClient.subscribeDataChanges(beforePath.get(), dataListener);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//阻塞自己</span></span><br><span class="line">        <span class="keyword">if</span> (zkClient.exists(beforePath.get())) &#123;</span><br><span class="line">            logger.info(Thread.currentThread().getName() + <span class="string">"分布式锁没有抢到，进入阻塞状态"</span>);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                downLatch.await();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//取消监听</span></span><br><span class="line">        zkClient.unsubscribeDataChanges(beforePath.get(), dataListener);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>基于开源工具curator</p>
+<p>curator框架封装了分布式锁机制，使用起来简单方便，仅需要创建InterProcessMutex对象，调用acquire方法尝试获取锁，方法支持超时可选参数；调用release释放锁，对于开发者而言，使用分布式锁犹如使用Java API一样方便，其底层实现原理是类似的，只不过框架做了很好的封装，对上层调用着透明</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 利用Curator框架+Zookeeper实现分布式锁</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CuratorDistributedLock</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">      <span class="comment">//定义重试次数</span></span><br><span class="line">        RetryPolicy policy = <span class="keyword">new</span> ExponentialBackoffRetry(<span class="number">1000</span>, <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">        CuratorFramework client = CuratorFrameworkFactory.newClient(<span class="string">"192.168.200.56:2181"</span>, policy);</span><br><span class="line"></span><br><span class="line">        client.start();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建分布式锁</span></span><br><span class="line">        InterProcessMutex mutex = <span class="keyword">new</span> InterProcessMutex(client, <span class="string">"/curator/lock"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span> flag = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//尝试获取锁，最多等待5秒</span></span><br><span class="line">            flag = mutex.acquire(<span class="number">5</span>, TimeUnit.SECONDS);</span><br><span class="line">            <span class="keyword">if</span> (flag) &#123;</span><br><span class="line">                System.out.println(<span class="string">"Thread"</span> + Thread.currentThread().getName() + <span class="string">",分布式锁获取成功，并执行业务...."</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">"Thread"</span> + Thread.currentThread().getName() + <span class="string">",分布式锁获取失败...."</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            Thread.sleep(<span class="number">4000</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (flag) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    mutex.release();</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        client.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/分布式核心/" rel="tag"><i class="fa fa-tag"></i> 分布式核心</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/27/常用安全算法/" rel="next" title="常用安全算法">
+                <i class="fa fa-chevron-left"></i> 常用安全算法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">google12071</p>
+              <p class="site-description motion-element" itemprop="description">技术、人文、生活</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Zookeeper应用-分布式锁"><span class="nav-number">1.</span> <span class="nav-text">Zookeeper应用-分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、前言"><span class="nav-number">1.1.</span> <span class="nav-text">一、前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、基于Zookeeper分布式锁原理"><span class="nav-number">1.2.</span> <span class="nav-text">二、基于Zookeeper分布式锁原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、Zookeeper分布式锁实践"><span class="nav-number">1.3.</span> <span class="nav-text">三、Zookeeper分布式锁实践</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">google12071</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.0.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+    
+  
+  <script color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.0"></script>
+
+  <script src="/js/src/motion.js?v=7.0.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=7.0.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=7.0.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.0"></script>
+<script src="/js/src/post-details.js?v=7.0.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=7.0.0"></script>
+
+
+  
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
