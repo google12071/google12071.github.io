@@ -96,20 +96,20 @@
 
 
 
-  <meta name="description" content="基于zookeeper分布式锁分析及实践">
+  <meta name="description" content="Zookeeper应用-分布式锁一、前言 为什么需要分布式锁? 单机环境，应用程序都部署在同一台服务器上，并发环境下为了控制多线程对临界资源的安全访问，我们通常可以加锁实现，单机环境下的多线程同属于同一个JVM中的同一个进程之内，可通过Java锁机制确保线程安全，但分布式环境下应用程序部署于多台机器，当多台机器并发执行相同的应用程序时，就有可能出现问题，比如消息推送服务部署于A，B两台机器，当同时">
 <meta name="keywords" content="分布式核心">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Zookeeper应用-分布式锁">
 <meta property="og:url" content="https://google12071.github.io/2019/10/13/Zookeeper应用-分布式锁/index.html">
 <meta property="og:site_name" content="简恒の博客">
-<meta property="og:description" content="基于zookeeper分布式锁分析及实践">
+<meta property="og:description" content="Zookeeper应用-分布式锁一、前言 为什么需要分布式锁? 单机环境，应用程序都部署在同一台服务器上，并发环境下为了控制多线程对临界资源的安全访问，我们通常可以加锁实现，单机环境下的多线程同属于同一个JVM中的同一个进程之内，可通过Java锁机制确保线程安全，但分布式环境下应用程序部署于多台机器，当多台机器并发执行相同的应用程序时，就有可能出现问题，比如消息推送服务部署于A，B两台机器，当同时">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://s2.ax1x.com/2019/10/13/uvbamd.png">
 <meta property="og:image" content="https://s2.ax1x.com/2019/10/13/uv7DHI.png">
-<meta property="og:updated_time" content="2019-10-13T10:24:54.461Z">
+<meta property="og:updated_time" content="2019-10-13T10:32:45.654Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Zookeeper应用-分布式锁">
-<meta name="twitter:description" content="基于zookeeper分布式锁分析及实践">
+<meta name="twitter:description" content="Zookeeper应用-分布式锁一、前言 为什么需要分布式锁? 单机环境，应用程序都部署在同一台服务器上，并发环境下为了控制多线程对临界资源的安全访问，我们通常可以加锁实现，单机环境下的多线程同属于同一个JVM中的同一个进程之内，可通过Java锁机制确保线程安全，但分布式环境下应用程序部署于多台机器，当多台机器并发执行相同的应用程序时，就有可能出现问题，比如消息推送服务部署于A，B两台机器，当同时">
 <meta name="twitter:image" content="https://s2.ax1x.com/2019/10/13/uvbamd.png">
 
 
@@ -375,7 +375,7 @@
                 
               
 
-              <time title="创建时间：2019-10-13 18:22:55 / 修改时间：18:24:54" itemprop="dateCreated datePublished" datetime="2019-10-13T18:22:55+08:00">2019-10-13</time>
+              <time title="创建时间：2019-10-13 18:22:55 / 修改时间：18:32:45" itemprop="dateCreated datePublished" datetime="2019-10-13T18:22:55+08:00">2019-10-13</time>
             
 
             
@@ -418,8 +418,6 @@
           
 
           
-            <div class="post-description">基于zookeeper分布式锁分析及实践</div>
-          
 
         </div>
       </header>
@@ -460,6 +458,7 @@
 <li><p>基于Redis</p>
 <p>Redis天然具备高性能、单线程的特性，可以利用其特性实现分布式锁，主要使用setnx加锁，并对锁设置超时时间，超时时自动释放锁，改方案要注意加锁及解锁姿势；基于数据库的核心思想主要是利用数据库唯一约束确保多线程互斥执行，此方案依赖数据库服务的可用性，会增加数据库压力，现实中很少用。</p>
 <p>zookeeper是一个分布式服务协调框架，内部结构类似于unix文件系统，是一种树型结构，但与文件系统不同的时，其路径节点上可以存储数据znode。zookeeper具有持久节点和临时节点2种并且可维护有序性，当客户端与服务器断开连接时，临时节点自动删除，基于临时节点+有序性+watch机制就可以非常简单方便的实现zookeeper分布式锁。</p>
+<a id="more"></a>
 </li>
 </ul>
 </li>
@@ -601,7 +600,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-count">2</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -618,9 +617,7 @@
                     
                       
                     
-                      
-                    
-                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-count">2</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -637,9 +634,7 @@
                     
                       
                     
-                      
-                    
-                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-count">2</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
